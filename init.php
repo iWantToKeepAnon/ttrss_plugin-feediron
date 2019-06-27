@@ -109,7 +109,7 @@ class Feediron extends Plugin implements IHandler
         // Ensure no empty tags are returned
         $article['tags'] = array_filter( $taglist );
       }
-      $article['content'] = $NewContent['content'];
+      if (isset($NewContent['content']) && '' !== $NewContent['content']) $article['content'] = $NewContent['content'];
     }
 
     return $article;
@@ -134,21 +134,11 @@ class Feediron extends Plugin implements IHandler
     if(is_array($data)){
 
       foreach ($data as $urlpart=>$config) { // Check for multiple URL's
-        if (strpos($urlpart, "|") !== false){
-          $urlparts = explode("|", $urlpart);
-          foreach ($urlparts as $suburl){
-            if (strpos($url, $suburl) !== false){
-              Feediron_Logger::get()->log_object(Feediron_Logger::LOG_TEST, "Config found for $suburl", $config);
-              return $config; // Return config if any url matched
-            }
+        foreach (explode("|", $urlpart) as $suburl){
+          if (preg_match("~$suburl~", $url)) { // if (strpos($url, $suburl) !== false){
+            Feediron_Logger::get()->log_object(Feediron_Logger::LOG_TEST, "Config found for $suburl", $config);
+            return $config; // Return config if any url matched
           }
-
-        } else {
-          if (strpos($url, $urlpart) === false){
-            continue;   // skip this config if URL not matching
-          }
-          Feediron_Logger::get()->log_object(Feediron_Logger::LOG_TEST, "Config found", $config);
-          return $config;
         }
       }
     }
@@ -249,6 +239,13 @@ class Feediron extends Plugin implements IHandler
     }
     list($html, $content_type) = $this->get_content($link);
 
+	 if (0 !== strncmp($content_type, 'text/', 5) && 0 !== strncmp($content_type, 'application/', 12))
+	 {
+      // Likely an image/jpeg, etc ...  Something not processable.
+		Feediron_Logger::get()->log(Feediron_Logger::LOG_TTRSS, "Response is _NOT_ HTML/XML/TEXT: $content_type");
+      return '';
+	 }
+
     $this->charset = false;
 
     // Array of valid charsets for tidy functions
@@ -297,14 +294,14 @@ class Feediron extends Plugin implements IHandler
     if ( isset($this->charset) ){
       foreach($valid_charsets as $index => $alias) {
 
-          foreach($alias as $key => $value) {
+        foreach($alias as $key => $value) {
 
-      		if ($value == $this->charset) {
-      			$this->charset = $index;
+          if ($value == $this->charset) {
+            $this->charset = $index;
             Feediron_Logger::get()->log(Feediron_Logger::LOG_TEST, "Valid Charset detected and mapped", $this->charset);
-      			break 2;
-      		}
-      	}
+            break 2;
+          }
+        }
       }
     }
 
@@ -880,7 +877,10 @@ class Feediron extends Plugin implements IHandler
           $inner_html = $this->getInnerHtml($basenode);
           if (!$inner_html){
             //if there's no nested nodes, render the node itself
-            $inner_html = $basenode->ownerDocument->saveXML($basenode);
+
+            // Apply patch from https://github.com/m42e/ttrss_plugin-feediron/files/743016/feediron.txt
+            try{ $inner_html = $basenode->ownerDocument->saveXML($basenode); }
+              catch (Exception $e) { Feediron_Logger::get()->log(Feediron_Logger::LOG_TTRSS, "feediron error: {$e->getMessage()}"); }
           }
           array_push($htmlout, $inner_html);
         }
