@@ -1,8 +1,8 @@
 <?php
 
 require_once "RecipeManager.php";
-require_once "Logger.php";
-require_once "Functions.php";
+require_once "fi_Logger.php";
+require_once "fi_Functions.php";
 require_once "Json.php";
 require_once "User.php";
 require_once "PrefTab.php";
