@@ -135,7 +135,7 @@ class Feediron extends Plugin implements IHandler
 
       foreach ($data as $urlpart=>$config) { // Check for multiple URL's
         foreach (explode("|", $urlpart) as $suburl){
-          if (preg_match("~$suburl~", $url)) { // if (strpos($url, $suburl) !== false){
+          if (preg_match('~' . preg_quote($suburl, '~') . '~', $url)) {
             Feediron_Logger::get()->log_object(Feediron_Logger::LOG_TEST, "Config found for $suburl", $config);
             return $config; // Return config if any url matched
           }
