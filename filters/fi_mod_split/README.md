@@ -41,8 +41,8 @@ String - Appends string to the end of content
 "example.com":{
   "type":"split",
   "steps":[{
-        "after": "/<head>\s*<title>/",
-        "before": "/</title>/"
+        "after": "/<head>\\s*<title>/",
+        "before": "/</"
       }
     ],
 	"start_element":"The Title is >",
