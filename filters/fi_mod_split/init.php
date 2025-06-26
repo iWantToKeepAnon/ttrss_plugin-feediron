@@ -35,7 +35,6 @@ class fi_mod_split
       }
     }
 
-	 #RJS: adding start/end elements
     if(array_key_exists('start_element', $config)){
       Feediron_Logger::get()->log_html(Feediron_Logger::LOG_VERBOSE, "Adding start element", $config['start_element']);
       $html = $config['start_element'].$html;
@@ -45,7 +44,6 @@ class fi_mod_split
       Feediron_Logger::get()->log_html(Feediron_Logger::LOG_VERBOSE, "Adding end element", $config['end_element']);
       $html = $html.$config['end_element'];
     }
-	 #RJS: done
 
     return $html;
   }
